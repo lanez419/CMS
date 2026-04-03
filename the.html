@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyprian Ops | Elite Hub</title>
+    <style>
+        :root {
+            --primary: #ff4d4d; 
+            --accent: #70e000; 
+            --bg: #050505;
+            --surface: #121212; 
+            --text: #ffffff;
+            --border: rgba(255, 255, 255, 0.08);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; }
+        body, html { margin: 0; padding: 0; background: var(--bg); color: var(--text); overflow: hidden; height: 100%; }
+
+        /* --- LOADING SYSTEM --- */
+        #loader {
+            position: fixed; inset: 0; background: #000; z-index: 5000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #load-text { font-size: 24px; font-weight: bold; letter-spacing: 5px; color: var(--primary); margin-bottom: 20px; }
+        .progress-container { width: 250px; height: 4px; background: #222; border-radius: 10px; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: var(--primary); transition: 0.1s; box-shadow: 0 0 15px var(--primary); }
+
+        /* --- LOGIN & POLICY --- */
+        #identity-gate { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: none; align-items: center; justify-content: center; overflow-y: auto; padding: 20px; }
+        .login-box { background: var(--surface); padding: 30px; border-radius: 25px; width: 100%; max-width: 400px; border: 1px solid var(--border); }
+        .policy-box { 
+            height: 150px; overflow-y: scroll; background: #000; padding: 15px; 
+            font-size: 11px; color: #888; border: 1px solid #333; margin: 15px 0; border-radius: 10px;
+        }
+
+        /* --- UI COMPONENTS --- */
+        input, select { background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 10px; }
+        .btn-action { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; }
+        
+        /* --- NAVIGATION --- */
+        nav { 
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(15px);
+            padding: 8px; border-radius: 20px; border: 1px solid var(--border); z-index: 1000; width: 90%; max-width: 450px;
+            justify-content: space-around; box-shadow: var(--shadow);
+        }
+        .nav-item { padding: 10px; color: #666; cursor: pointer; border-radius: 12px; font-size: 12px; font-weight: 600; transition: 0.3s; }
+        .nav-item.active { background: var(--primary); color: white; }
+
+        /* --- PAGES --- */
+        .page { display: none; height: 100vh; overflow-y: auto; padding: 20px 20px 100px 20px; animation: fadeIn 0.4s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- CHAT SECTION --- */
+        .chat-container { height: 75vh; display: flex; flex-direction: column; background: var(--surface); border-radius: 20px; border: 1px solid var(--border); }
+        #chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 13px; position: relative; cursor: pointer; }
+        .msg.me { align-self: flex-end; background: var(--primary); }
+        .msg .del-btn { display: none; position: absolute; top: -10px; right: 0; background: #000; color: red; font-size: 10px; padding: 2px 5px; border-radius: 5px; }
+        .msg.me:hover .del-btn { display: block; }
+        
+        .profile-pic-preview { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin: 10px auto; display: block; border: 2px solid var(--primary); }
+        
+        footer { text-align: center; font-size: 10px; opacity: 0.4; padding: 20px; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div id="load-text"></div>
+        <div class="progress-container"><div id="progress-bar"></div></div>
+        <p style="font-size: 10px; color: #444; margin-top: 10px;">@lanez COPYRIGHT</p>
+    </div>
+
+    <div id="identity-gate">
+        <div class="login-box">
+            <h2 style="color:var(--primary); text-align: center;">CYPRIAN OPS</h2>
+            <img id="p-preview" class="profile-pic-preview" src="https://via.placeholder.com/60">
+            <input type="file" id="p-upload" accept="image/*" style="font-size: 10px;">
+            <input type="text" id="reg-user" placeholder="Username">
+            <input type="number" id="reg-age" placeholder="Age">
+            <input type="tel" id="reg-wa" placeholder="WhatsApp (e.g. 234...)">
+            
+            <div class="policy-box" id="policy">
+                <b>Terms of Service</b><br><br>
+                1. Respect all members within the Cyprian Ops collective.<br>
+                2. No unauthorized data extraction or malicious behavior.<br>
+                3. Your real WhatsApp number is required for verification purposes.<br>
+                4. Admin decisions are final and binding.<br>
+                [... Rest of the 300-word policy text simulated here for brevity: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur...]
+            </div>
+            
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <input type="checkbox" id="agree-check" style="width: 20px; margin: 0;"> I agree to the policy
+            </label>
+            
+            <button class="btn-action" onclick="register()">INITIALIZE ACCOUNT</button>
+        </div>
+    </div>
+
+    <nav id="main-nav" style="display: none;">
+        <div class="nav-item active" onclick="showPage('home', this)">Home</div>
+        <div class="nav-item" onclick="showPage('chat', this)">Squad</div>
+        <div class="nav-item" onclick="showPage('admin', this)">Admin</div>
+        <div class="nav-item" onclick="logout()" style="color: #444;">Exit</div>
+    </nav>
+
+    <div id="home-page" class="page active">
+        <h1 id="welcome-msg">Welcome, Operator</h1>
+        <div style="background: var(--surface); padding: 20px; border-radius: 20px; border: 1px solid var(--primary);">
+            <p id="user-info-card"></p>
+        </div>
+    </div>
+
+    <div id="chat-page" class="page">
+        <div class="chat-container">
+            <div id="chat-messages"></div>
+            <div style="padding: 15px; display: flex; gap: 10px;">
+                <input type="text" id="chat-input" placeholder="Secure message..." style="margin:0;">
+                <button class="btn-action" style="width: 80px;" onclick="sendMsg()">SEND</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-page" class="page">
+        <h2>Admin Console</h2>
+        <div id="admin-lock">
+            <input type="password" id="admin-pass" placeholder="Enter Access Key">
+            <button class="btn-action" onclick="checkAdmin()">UNLOCK</button>
+        </div>
+        <div id="admin-controls" style="display: none;">
+            <p style="color: var(--accent);">SYSTEM STATUS: OVERRIDE ENABLED</p>
+            <button class="btn-action" style="background: #333;" onclick="clearAllData()">WIPE ALL LOCAL DATA</button>
+        </div>
+    </div>
+
+    <footer>© 2026 @lanez • Cyprian Ops 🩸</footer>
+
+    <script>
+        const targetText = "Cyprian Ops 🩸";
+        let currentText = "";
+        let index = 0;
+
+        // --- LOADER LOGIC ---
+        window.onload = () => {
+            const interval = setInterval(() => {
+                if (index < targetText.length) {
+                    currentText += targetText[index];
+                    document.getElementById('load-text').innerText = currentText;
+                    index++;
+                    let progress = (index / targetText.length) * 100;
+                    document.getElementById('progress-bar').style.width = progress + "%";
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.getElementById('loader').style.display = 'none';
+                        checkAuth();
+                    }, 1000);
+                }
+            }, 150);
+        };
+
+        // --- AUTH & REGISTRATION ---
+        function checkAuth() {
+            if (localStorage.getItem('ops_user')) {
+                document.getElementById('identity-gate').style.display = 'none';
+                document.getElementById('main-nav').style.display = 'flex';
+                loadProfile();
+            } else {
+                document.getElementById('identity-gate').style.display = 'flex';
+            }
+        }
+
+        // Profile Pic Preview
+        document.getElementById('p-upload').onchange = function(e) {
+            const reader = new FileReader();
+            reader.onload = (event) => document.getElementById('p-preview').src = event.target.result;
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        function register() {
+            const user = document.getElementById('reg-user').value;
+            const age = document.getElementById('reg-age').value;
+            const wa = document.getElementById('reg-wa').value;
+            const agreed = document.getElementById('agree-check').checked;
+            const pPic = document.getElementById('p-preview').src;
+
+            // WhatsApp "Verification" Logic (Basic Regex for digits/length)
+            const waPattern = /^[0-9]{10,15}$/;
+
+            if (!user || !age || !waPattern.test(wa)) {
+                alert("Please fill all fields correctly. (WA number must be digits only, 10-15 chars)");
+                return;
+            }
+            if (!agreed) {
+                alert("You must agree to the policy.");
+                return;
+            }
+
+            const profile = { user, age, wa, pPic };
+            localStorage.setItem('ops_user', JSON.stringify(profile));
+            location.reload();
+        }
+
+        function loadProfile() {
+            const data = JSON.parse(localStorage.getItem('ops_user'));
+            document.getElementById('welcome-msg').innerText = `Welcome, ${data.user}`;
+            document.getElementById('user-info-card').innerHTML = `
+                <b>Status:</b> Active Ops<br>
+                <b>Age:</b> ${data.age}<br>
+                <b>Link:</b> wa.me/${data.wa}
+            `;
+        }
+
+        // --- PAGE NAVIGATION ---
+        function showPage(p, el) {
+            document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nv => nv.classList.remove('active'));
+            document.getElementById(p + '-page').classList.add('active');
+            el.classList.add('active');
+        }
+
+        // --- CHAT LOGIC ---
+        function sendMsg() {
+            const input = document.getElementById('chat-input');
+            if (!input.value.trim()) return;
+            
+            const data = JSON.parse(localStorage.getItem('ops_user'));
+            const msgId = 'msg_' + Date.now();
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'msg me';
+            msgDiv.id = msgId;
+            msgDiv.innerHTML = `
+                <span class="del-btn" onclick="deleteMsg('${msgId}')">Delete</span>
+                <small style="font-size:9px; display:block; opacity:0.7;">${data.user}</small>
+                ${input.value}
+            `;
+            
+            document.getElementById('chat-messages').appendChild(msgDiv);
+            input.value = '';
+            const container = document.getElementById('chat-messages');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function deleteMsg(id) {
+            if(confirm("Delete this message for everyone?")) {
+                document.getElementById(id).remove();
+            }
+        }
+
+        // --- ADMIN LOGIC ---
+        function checkAdmin() {
+            const pass = document.getElementById('admin-pass').value;
+            if (pass === "lanez2026") {
+                document.getElementById('admin-lock').style.display = 'none';
+                document.getElementById('admin-controls').style.display = 'block';
+            } else {
+                alert("ACCESS DENIED");
+            }
+        }
+
+        function clearAllData() {
+            if(confirm("Wipe all data?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('ops_user');
+            location.reload();
+        }
+    </script>
+</body>
+</html>
